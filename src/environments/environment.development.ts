@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://15.206.101.25:1339',
+  apiUrl: 'https://amitmarbles.metacaps.in',
   //apiUrl: 'http://localhost:1338',
 };
 
