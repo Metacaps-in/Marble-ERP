@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://erpapi.metacaps.in',
+  apiUrl: 'http://15.206.101.25:1339',
   //apiUrl: 'http://localhost:1338',
 };
 
