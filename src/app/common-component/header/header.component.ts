@@ -1,7 +1,11 @@
 import { Component, OnInit } from "@angular/core";
 import { NavigationEnd, Router } from "@angular/router";
 import { MessageService } from "primeng/api";
+import { PaymentInService } from "src/app/core/payment-in/payment-in.service";
+import { PaymentOutService } from "src/app/core/payment-out/payment-out.service";
+import { PurchaseReturnService } from "src/app/core/purchase-return/purchase-return.service";
 import { PurchaseService } from "src/app/core/purchase/purchase.service";
+import { SalesReturnService } from "src/app/core/sales-return/sales-return.service";
 import { SalesService } from "src/app/core/sales/sales.service";
 import { AESEncryptDecryptService } from "src/app/shared/auth/AESEncryptDecryptService ";
 import { AuthService } from "src/app/shared/auth/auth.service";
@@ -11,6 +15,8 @@ import { MenuItem, SideBarData } from "src/app/shared/models/models";
 import { Role } from "src/app/shared/models/role";
 import { routes } from "src/app/shared/routes/routes";
 import { SideBarService } from "src/app/shared/side-bar/side-bar.service";
+import { InvoiceDialogComponent } from "../modals/invoice-dialog/invoice-dialog.component";
+import { SharedModule } from "src/app/shared/shared.module";
 // @Component({
 //   selector: 'app-header',
 //   templateUrl: './header.component.html',
@@ -157,12 +163,21 @@ export interface Payment {
     name: string;
     avatarUrl?: string;
   };
+  salesId?: string;
+  purchaseId?: string;
+  salesReturnId?: string;
+  purchaseReturnId?: string;
+  salesPaymentId?: string;
+  salesReturnPaymentId?: string;
+  purchasePaymentId?: string;
+  purchaseReturnPaymentId?: string;
 }
 
 @Component({
   selector: "app-header",
   templateUrl: "./header.component.html",
-
+standalone: true,
+imports: [SharedModule, InvoiceDialogComponent],
   styleUrls: ["./header.component.scss"],
   providers: [MessageService],
 })
@@ -179,11 +194,22 @@ export class HeaderComponent {
   latestPayments: Payment[] = [];
   public isFullScreen: boolean = false;
 
-  // showInvoiceDialog: boolean = false; // to enable sales invoice popup
-  // notificationDataShowById: any[];
-  // paymentDataListById: any;
-  // header = "";
-  // paymentIDs: { salesId?: string; purchaseId?: string }[] = []; // Declare the paymentIDs array
+  showInvoiceDialog: boolean = false; // to enable sales invoice popup
+  showDialoge: boolean = false; // to enable callback popup
+  notificationDataShowById: any[];
+  paymentDataListById: any;
+  header = "";
+  paymentIDs: {
+    salesId?: string;
+    purchaseId?: string;
+    salesReturnId?: string;
+    purchaseReturnId?: string;
+    salesPaymentId?: string;
+    salesReturnPaymentId?: string;
+    purchasePaymentId?: string;
+    purchaseReturnPaymentId?: string;
+  }[] = []; // Declare the paymentIDs array
+
 
   constructor(
     public router: Router,
@@ -192,9 +218,13 @@ export class HeaderComponent {
     private crypto: AESEncryptDecryptService,
     public auth: AuthService,
     public messageService: MessageService,
-    // private salesService: SalesService,
-    // private purchaseService: PurchaseService,
-    private combinedPaymentService: CombinedPaymentService
+    private salesService: SalesService,
+    private salesReturnService: SalesReturnService,
+    private purchaseService: PurchaseService,
+    // private purchaseReturnService: PurchaseReturnService,
+    private paymentinService: PaymentInService,
+    // private paymentOutService: PaymentOutService,
+    private combinedPaymentService: CombinedPaymentService,
   ) {
     this.sideBar.toggleSideBar.subscribe((res: string) => {
       if (res == "true") {
@@ -219,28 +249,13 @@ export class HeaderComponent {
       this.router.navigate([routes.login]);
     }, 200);
   }
-
-  // toggleFullScreen(): void {
-  //   if (!this.isFullScreen) {
-  //     if (document.documentElement.requestFullscreen) {
-  //       document.documentElement.requestFullscreen();
-  //     }
-  //     this.isFullScreen = true;
-  //   } else {
-  //     if (document.exitFullscreen) {
-  //       document.exitFullscreen();
-  //     }
-  //     this.isFullScreen = false;
-  //   }
-  // }
-
   toggleFullScreen() {
     if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
+      document.documentElement.requestFullscreen();
     } else if (document.exitFullscreen) {
-        document.exitFullscreen();
+      document.exitFullscreen();
     }
-}
+  }
   private getRoutes(route: { url: string }): void {
     const bodyTag = document.body;
 
@@ -263,84 +278,124 @@ export class HeaderComponent {
       mainWrapper.classList.remove("open-msg-box");
     }
   }
-  // showInvoiceDialoge(ids: { salesId?: string, purchaseId?: string ,}) {
-  //   if (ids.salesId) {
-  //     // It's a sales ID
-  //     console.log("Sales ID passed to invoice dialog:", ids.salesId);
-  //     this.salesService.GetSalesDataById(ids.salesId).subscribe((resp: any) => {
-  //       this.showInvoiceDialog = true;
-  //       this.notificationDataShowById = [resp.data];
-  //       this.header = "Payment Notification Invoice";
-  //       console.log("Notification data by id on dialog:", this.notificationDataShowById);
-  //     });
+  showInvoiceDialoge(ids: {
+    salesId?: string;
+    purchaseId?: string;
+    salesReturnId?: string;
+    purchaseReturnId?: string;
+    salesPaymentId?: string;
+    salesReturnPaymentId?: string;
+    purchasePaymentId?: string;
+    purchaseReturnPaymentId?: string;
+  }) {
+    if (ids.salesId) {
+      // It's a sales ID
+      console.log("Sales ID passed to invoice dialog:", ids.salesId);
+      this.salesService.GetSalesDataById(ids.salesId).subscribe((resp: any) => {
+        this.showInvoiceDialog = true;
+        this.notificationDataShowById = [resp.data];
+        this.header = "Payment Notification Invoice";
+        console.log(
+          "Notification data by id on dialog:",
+          this.notificationDataShowById
+        );
+      });
 
-  //     this.salesService.getSalesPaymentList(ids.salesId).subscribe((resp: any) => {
-  //       this.paymentDataListById = resp.data;
-  //       console.log("Payment data by sales id:", this.paymentDataListById);
-  //     });
-  //   } else if (ids.purchaseId) {
-  //     // It's a purchase ID
-  //     console.log("Purchase ID passed to invoice dialog:", ids.purchaseId);
-  //     this.purchaseService.GetPurchaseDataById(ids.purchaseId).subscribe((resp: any) => {
-  //       this.showInvoiceDialog = true;
-  //       this.notificationDataShowById = [resp.data];
-  //       this.header = "Payment Notification Invoice";
-  //       console.log("Notification data by id on dialog:", this.notificationDataShowById);
-  //     });
+      this.salesService
+        .getSalesPaymentList(ids.salesId)
+        .subscribe((resp: any) => {
+          this.paymentDataListById = resp.data;
+          console.log("Payment data by sales id:", this.paymentDataListById);
+        });
+    } else if (ids.purchaseId) {
+      // It's a purchase ID
+      console.log("Purchase ID passed to invoice dialog:", ids.purchaseId);
+      this.purchaseService
+        .GetPurchaseDataById(ids.purchaseId)
+        .subscribe((resp: any) => {
+          this.showInvoiceDialog = true;
+          this.notificationDataShowById = [resp.data];
+          this.header = "Payment Notification Invoice";
+          console.log(
+            "Notification data by id on dialog:",
+            this.notificationDataShowById
+          );
+        });
 
-  //     this.purchaseService.getPurchasePaymentList(ids.purchaseId).subscribe((resp: any) => {
-  //       this.paymentDataListById = resp.data;
-  //       console.log("Payment data by purchase id:", this.paymentDataListById);
-  //     });
-  //   }
-  // }
-  // close() {
-  //   console.log("close dialog triggered");
-  //   this.showInvoiceDialog = false;
-  // }
+      this.purchaseService
+        .getPurchasePaymentList(ids.purchaseId)
+        .subscribe((resp: any) => {
+          this.paymentDataListById = resp.data;
+          console.log("Payment data by purchase id:", this.paymentDataListById);
+        });
+    }
+  }
+  close() {
+    console.log("close dialog triggered");
+    this.showInvoiceDialog = false;
+  }
 
-  // callBackModal() {
-  // if (this.salesId) {
-  //   // Delete Sales logic
-  //   this.salesService.DeleteSalesData(this.salesId).subscribe((resp: any) => {
-  //     this.messageService.add({ severity: "success", detail: resp.message });
-  //     this.getsales();
-  //     this.getPaymentListByCustomerId();
-  //     this.getsalesReturn();
-  //     this.getSalesReturnPaymentListByCustomerId();
-  //      this.showDialoge = false;
-  //   });
-  // } else if (this.salesReturnID) {
-  //   // Delete Sales Return logic
-  //   this.salesReturnService.deleteSalesReturn(this.salesReturnID).subscribe((resp: any) => {
-  //     this.messageService.add({ severity: "success", detail: resp.message });
-  //     this.getsales();
-  //     this.getPaymentListByCustomerId();
-  //     this.getsalesReturn();
-  //     this.getSalesReturnPaymentListByCustomerId();
-  //     this.showDialoge = false;
-  //   });
-  // }
-  // else if (this.salesPaymentId) {
-  //   // Delete Sales Payment logic
-  //   this.salesPayment.deletePaymentById(this.salesPaymentId).subscribe((resp: any) => {
-  //     this.messageService.add({ severity: "success", detail: resp.message });
-  //     this.getsales();
-  //     this.getPaymentListByCustomerId();
-  //     this.showDialoge = false;
-  //   });
-  // }
-  // else if (this.salesReturnPaymentId) {
-  //   // Delete Sales Return logic
-  //   this.salesReturnService.deleteSalesReturnPayment(this.salesReturnPaymentId).subscribe((resp: any) => {
-  //     this.messageService.add({ severity: "success", detail: resp.message });
-  //     this.getsalesReturn();
-  //     this.getSalesReturnPaymentListByCustomerId();
-  //     this.showDialoge = false;
-  //   });
-  // }
-  // }
-
+  callBackModal() {
+    if (this.paymentIDs[0].salesId) {
+      // Delete Sales logic
+      this.salesService
+        .DeleteSalesData(this.paymentIDs[0].salesId)
+        .subscribe((resp: any) => {
+          this.messageService.add({
+            severity: "success",
+            detail: resp.message,
+          });
+          this.showDialoge = false;
+        });
+    } else if (this.paymentIDs[0].salesReturnId) {
+      // Delete Sales Return logic
+      this.salesReturnService
+        .deleteSalesReturn(this.paymentIDs[0].salesReturnId)
+        .subscribe((resp: any) => {
+          this.messageService.add({
+            severity: "success",
+            detail: resp.message,
+          });
+          this.showDialoge = false;
+        });
+    } else if (this.paymentIDs[0].salesPaymentId) {
+      // Delete Sales Payment logic
+      this.paymentinService
+        .deletePaymentById(this.paymentIDs[0].salesPaymentId)
+        .subscribe((resp: any) => {
+          this.messageService.add({
+            severity: "success",
+            detail: resp.message,
+          });
+          this.showDialoge = false;
+        });
+    } else if (this.paymentIDs[0].salesReturnPaymentId) {
+      // Delete Sales Return logic
+      this.salesReturnService
+        .deleteSalesReturnPayment(this.paymentIDs[0].salesReturnPaymentId)
+        .subscribe((resp: any) => {
+          this.messageService.add({
+            severity: "success",
+            detail: resp.message,
+          });
+          this.showDialoge = false;
+        });
+    }
+  }
+  openInvoice(payment: Payment): void {
+    const paymentIds = {
+      salesId: payment.salesId,
+      purchaseId: payment.purchaseId,
+      salesReturnId: payment.salesReturnId,
+      purchaseReturnId: payment.purchaseReturnId,
+      salesPaymentId: payment.salesPaymentId,
+      salesReturnPaymentId: payment.salesReturnPaymentId,
+      purchasePaymentId: payment.purchasePaymentId,
+      purchaseReturnPaymentId: payment.purchaseReturnPaymentId
+    };
+  
+    this.showInvoiceDialoge(paymentIds); // Open the invoice dialog for the selected payment
+  }
   loadLatestPayments(): void {
     this.combinedPaymentService.getCombinedPayments().subscribe(
       (data: Payment[]) => {
@@ -348,14 +403,20 @@ export class HeaderComponent {
         this.latestPayments = data.sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
-        // this.paymentIDs = data.map((payment) => ({
-        //   salesId: payment.salesId,
-        //   purchaseId: payment.purchaseId,
-        // })); // Store salesId and purchaseId payment IDs
-        // console.log(
-        //   "This is the latest 10 sales and purchase payments ids:",
-        //   this.paymentIDs
-        // );
+        this.paymentIDs = data.map((payment) => ({
+          salesId: payment.salesId,
+          purchaseId: payment.purchaseId,
+          // salesReturnId: payment.salesReturnId,
+          // purchaseReturnId: payment.purchaseReturnId,
+          // salesPaymentId: payment.salesPaymentId,
+          // salesReturnPaymentId: payment.salesReturnPaymentId,
+          // purchasePaymentId: payment.purchasePaymentId,
+          // purchaseReturnPaymentId: payment.purchaseReturnPaymentId,
+        })); // Store salesId and purchaseId payment IDs
+        console.log(
+          "This is the latest 10 sales and purchase payments ids:",
+          this.paymentIDs
+        );
       },
       (error) => {
         const message = error.message;

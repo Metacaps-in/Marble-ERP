@@ -14,7 +14,6 @@ import { InvoiceDialogComponent } from '../common-component/modals/invoice-dialo
 @NgModule({
   declarations: [
     CoreComponent,
-    HeaderComponent,
     SidebarComponent,
     ModalComponent,
   ],
@@ -22,6 +21,8 @@ import { InvoiceDialogComponent } from '../common-component/modals/invoice-dialo
     CommonModule,
     CoreRoutingModule,
     SharedModule,
+    HeaderComponent,
+
     // InvoiceDialogComponent
   ],
 })

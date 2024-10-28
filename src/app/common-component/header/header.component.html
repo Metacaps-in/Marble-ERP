@@ -282,7 +282,8 @@
                             <ul class="notification-list">
                                 <ng-container *ngIf="latestPayments.length; else noPayments">
                                     <li *ngFor="let payment of latestPayments" class="notification-message">
-                                        <a>
+                                        <a style="cursor: pointer;" pTooltip="Click To See Payment Invoice" tooltipPosition="bottom"
+                                        tooltipStyleClass="tooltip" (click)="openInvoice(payment)">
 
                                             <div class="media">
                                                 <span class="avatar">
@@ -607,5 +608,8 @@
     </div>
 </div> -->
 <!-- <app-invoice-dialog [showInvoiceDialog]="showInvoiceDialog" [salesDataById]="notificationDataShowById"
-    [paymentDataListById]="paymentDataListById" (callbackModal)="callBackModal()" (close)="close()"
-    [header]="header"></app-invoice-dialog> -->
+    [paymentDataListById]="paymentDataListById" (callbackModal)="callBackModal()" (close)="close()"></app-invoice-dialog> -->
+
+    <app-invoice-dialog *ngIf="showInvoiceDialog" [showInvoiceDialog]="showInvoiceDialog" [salesDataById]="notificationDataShowById"
+  [paymentDataListById]="paymentDataListById" (callbackModal)="callBackModal()" (close)="close()"
+  [header]="header"></app-invoice-dialog>
