@@ -111,6 +111,7 @@ export class ListBlocksComponent implements OnInit {
   }
 
   onFilter(value: any): void {
+    console.log(value);
     this.data = value.filteredValue;
     console.log(value.filteredValue);
   }
@@ -190,7 +191,6 @@ export class ListBlocksComponent implements OnInit {
           this.messageService.add({
             severity: resp.status === "success" ? "success" : "error",
             detail: resp.message,
-
           });
           this.getUnProcessedList();
         }

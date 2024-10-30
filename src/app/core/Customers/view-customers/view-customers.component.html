@@ -141,10 +141,6 @@
               </div>
             </div>
           </div>
-          <!-- <div class="tab-header">
-            <span class="header-text">Sales</span>
-            <button pButton type="button" label="Create Sales" icon="pi pi-plus" (click)="navigateToCreateSales()"></button>
-        </div> -->
           <p-table selectionMode="multiple" [value]="salesDataShowById" styleClass="p-datatable-striped"
             [tableStyle]="{ 'min-width': '60rem' }" [paginator]="salesDataShowById?.length >= 5" [rows]="10"
             [rowsPerPageOptions]="[5, 10, 20]">
@@ -652,7 +648,7 @@
   [paymentDataListById]="paymentDataListById" (callbackModal)="callBackModal()" (close)="close()"
   [header]="header"></app-invoice-dialog>
 
-<app-payments-invoice-dialog [ShowPaymentInvoice]="showPaymentDialog" [dataItemsGrid]="paymentInvoicesalesDataShowById"
+<app-payments-invoice-dialog *ngIf="showPaymentDialog" [ShowPaymentInvoice]="showPaymentDialog" [dataItemsGrid]="paymentInvoicesalesDataShowById"
   [dataById]="paymentObject" [header]="header" (callbackModal)="callBackModal()"
   (close)="close()"></app-payments-invoice-dialog>
 

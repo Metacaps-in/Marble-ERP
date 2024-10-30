@@ -1,7 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit } from "@angular/core";
 import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { MultiSelectModule } from "primeng/multiselect";
 import { routes } from "src/app/shared/routes/routes";
 import { SharedModule } from "src/app/shared/shared.module";
 import { TaxesService } from "../../settings/taxes/taxes.service";
@@ -347,10 +346,13 @@ export class AddsalesComponent implements OnInit {
       const unitPrice = +item.get("salesItemUnitPrice").value || 0;
       const tax = item.get("salesItemTax").value || [];
       const sqftPerPiece = +item.get("sqftPerPiece").value || 0;
-
+      const discount = +this.addSalesForm.get("salesDiscount").value;
+      let salesItemNonTaxableAmount: number = 0;;
+      let salesItemTaxableAmount: number = 0;
+      
       const pieces = quantity / sqftPerPiece;
       let totalTaxAmount = 0;
-      const salesItemTaxableAmount = item.get("salesItemTaxableAmount").value;
+      salesItemTaxableAmount = item.get("salesItemTaxableAmount").value;
       this.totalTaxableAmount += Number(salesItemTaxableAmount);
       if (Array.isArray(tax)) {
         tax.forEach((selectedTax: any) => {
@@ -361,13 +363,29 @@ export class AddsalesComponent implements OnInit {
         totalTaxAmount = (salesItemTaxableAmount * tax) / 100;
       }
       const totalAmount = quantity * unitPrice;
-      const salesItemNonTaxableAmount = totalAmount - salesItemTaxableAmount;
+      
+      console.log(salesItemNonTaxableAmount);
+      salesItemNonTaxableAmount = totalAmount - salesItemTaxableAmount;
+      console.log(salesItemNonTaxableAmount);
       const salesItemAppliedTaxAmount = salesItemTaxableAmount + totalTaxAmount;
       taxable += salesItemAppliedTaxAmount;
-      const subtotal = quantity * unitPrice + totalTaxAmount;
+      let subtotal = quantity * unitPrice + totalTaxAmount;
+      // if (discount) {
+      //   if (discount <= salesItemNonTaxableAmount) {
+      //     // If discount is less than or equal to salesItemNonTaxableAmount
+      //     console.log(salesItemNonTaxableAmount);
+      //     salesItemNonTaxableAmount = item.get("salesItemNonTaxableAmount").value - discount;
+      //     item.get("salesItemNonTaxableAmount").setValue(salesItemNonTaxableAmount);
+      //   } else if (discount > salesItemNonTaxableAmount && discount <= item.get("salesItemTaxableAmount").value) {
+      //     console.log(item.get("salesItemTaxableAmount").value, discount);
+      //     salesItemTaxableAmount = item.get("salesItemTaxableAmount").value - discount;
+      //     item.get("salesItemTaxableAmount").setValue(salesItemTaxableAmount);
+      //   }
+      //   subtotal = subtotal - discount;
+      // }
+      
       salesOrderTax += totalTaxAmount;
       salesGrossTotal += subtotal;
-
       if (totalAmount > 0) {
         // const salesItemTaxableAmount = item.get("salesItemTaxableAmount") as FormControl
         item.get("salesItemTaxableAmount").clearValidators();

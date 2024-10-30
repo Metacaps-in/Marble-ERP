@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { Component } from "@angular/core";
 import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
-import { RouterModule } from "@angular/router";
+import { Router, RouterModule } from "@angular/router";
 import { TableModule } from "primeng/table";
 import { routes } from "src/app/shared/routes/routes";
 import { ButtonModule } from "primeng/button";
@@ -15,12 +15,14 @@ import { TaxesService } from "../taxes.service";
 import { FilterPipe } from "src/app/core/filter.pipe";
 import { SharedModule } from "src/app/shared/shared.module";
 import { MessageService } from "primeng/api";
+import { VisitReasonListComponent } from "../../visit-reasons/visit-reasons-list/table.component";
+
+
 
 @Component({
   selector: "app-taxes-list",
   templateUrl: "./taxes-list.component.html",
   styleUrl: "./taxes-list.component.scss",
-
   standalone: true,
   imports: [SharedModule],
   providers: [MessageService],
@@ -37,16 +39,22 @@ export class TaxesListComponent {
   cols = [];
   exportColumns = [];
 
+  columnSettingWithItemsKeys = [
+    { keys: "name", header: "Name" },
+    { keys: "taxRate", header: "Tax Rate" },
+  ];
+
   constructor(
     public dialog: MatDialog,
     private service: TaxesService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private readonly router: Router,
   ) {}
 
   openAddDialog() {
     const dialogConfig = new MatDialogConfig();
     dialogConfig.disableClose = true; // Prevent closing with escape key
-    const dialogRef = this.dialog.open(AddTaxesComponent,dialogConfig);
+    const dialogRef = this.dialog.open(AddTaxesComponent, dialogConfig);
     dialogRef.afterClosed().subscribe((dialog) => {
       if (dialog === true) return;
       this.service.CreateTax(dialog).subscribe((resp: any) => {
@@ -61,13 +69,22 @@ export class TaxesListComponent {
       });
     });
   }
+  handleNavigation(){
+    this.openAddDialog();
+  }
+  handleDelete(Id: string){
+    this.deletetaxes(Id)
+  }
+  handleEdit(Id: string){
+    this.openEditDialog(Id);
+  }
   openEditDialog(Id: string) {
     if (!Id) return;
     const dialogConfig = new MatDialogConfig();
     dialogConfig.disableClose = true; // Prevent closing with escape key
     dialogConfig.data = Id; // Pass ID to the dialog
 
-    const dialogRef = this.dialog.open(EditTaxesComponent,dialogConfig) 
+    const dialogRef = this.dialog.open(EditTaxesComponent, dialogConfig);
 
     dialogRef.afterClosed().subscribe((dialog) => {
       if (dialog === true) return;

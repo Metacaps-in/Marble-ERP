@@ -1,8 +1,6 @@
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { VisitReasonListComponent } from './visit-reasons-list/visit-reasons-list.component';
 import { VisitReasonsRoutingModule } from './visit-reasons-routing.module';
-import { SharedModule } from 'src/app/shared/shared.module';
+import { VisitReasonListComponent } from './visit-reasons-list/table.component';
 
 
 
@@ -10,7 +8,7 @@ import { SharedModule } from 'src/app/shared/shared.module';
   declarations: [
   ],
   imports: [
-    VisitReasonListComponent,
+    VisitReasonListComponent, 
     VisitReasonsRoutingModule,
   ]
 })

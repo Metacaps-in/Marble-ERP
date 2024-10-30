@@ -57,6 +57,7 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { VisitReasonListComponent } from "../core/settings/visit-reasons/visit-reasons-list/table.component";
 
 
 
@@ -132,8 +133,8 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
     MatTabsModule,
     MatCheckboxModule,
     MatRadioModule,
-    TotalValueDirective
-    
+    TotalValueDirective,
+    VisitReasonListComponent
 
     
     
@@ -196,7 +197,7 @@ MatRadioModule,
 TotalValueDirective,
 CarouselModule,
     
-
+VisitReasonListComponent
     
     
 
